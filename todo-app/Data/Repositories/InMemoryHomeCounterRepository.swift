@@ -18,10 +18,21 @@ final class InMemoryHomeCounterRepository: HomeCounterRepository {
             }
     }
 
+    func updateToCallCount(_ count: Int) {
+        let current = subject.value
+        let updated = HomeCounters(
+            toCall: count,
+            toBuy: current.toBuy,
+            toSell: current.toSell,
+            sync: current.sync
+        )
+        subject.send(updated)
+    }
+
     private func incrementCounters() {
         let current = subject.value
         let updated = HomeCounters(
-            toCall: current.toCall + 1,
+            toCall: current.toCall,
             toBuy: current.toBuy + 2,
             toSell: current.toSell + 1,
             sync: current.sync + 1

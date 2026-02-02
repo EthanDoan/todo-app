@@ -37,7 +37,12 @@ final class AppContainer {
     func makeToCallViewModel() -> ToCallViewModel {
         let fetchPageUseCase = DefaultFetchToCallPageUseCase(repository: toCallRepository)
         let retryUseCase = DefaultRetryToCallUseCase(repository: toCallRepository)
-        return ToCallViewModel(fetchPageUseCase: fetchPageUseCase, retryUseCase: retryUseCase)
+        let updateToCallCountUseCase = DefaultUpdateToCallCountUseCase(repository: counterRepository)
+        return ToCallViewModel(
+            fetchPageUseCase: fetchPageUseCase,
+            retryUseCase: retryUseCase,
+            updateToCallCountUseCase: updateToCallCountUseCase
+        )
     }
 
     func makeToBuyViewModel() -> ToBuyViewModel {
