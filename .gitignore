@@ -5,6 +5,9 @@
 ## User settings
 xcuserdata/
 
+# Build generated
+build/
+
 ## Obj-C/Swift specific
 *.hmap
 
@@ -60,3 +63,9 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Other
+.DS_Store
+*.xcuserstate
+*.ipa
+*.dSYM.zip
