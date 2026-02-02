@@ -1,0 +1,34 @@
+import Combine
+import Foundation
+
+final class ToCallViewModel: ObservableObject {
+    @Published private(set) var lastSyncedAt: Date?
+    @Published private(set) var people: [ToCallPerson] = []
+
+    private let fetchPageUseCase: FetchToCallPageUseCase
+    private let retryUseCase: RetryToCallUseCase
+    private var cancellables = Set<AnyCancellable>()
+
+    init(fetchPageUseCase: FetchToCallPageUseCase, retryUseCase: RetryToCallUseCase) {
+        self.fetchPageUseCase = fetchPageUseCase
+        self.retryUseCase = retryUseCase
+    }
+
+    func loadFirstPage() {
+        fetchPageUseCase.execute(page: 1, filter: ToCallFilter(searchText: nil))
+            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] page in
+                self?.people = page.items
+                self?.lastSyncedAt = page.lastSyncedAt
+            })
+            .store(in: &cancellables)
+    }
+
+    func retryLastRequest() {
+        retryUseCase.execute()
+            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] page in
+                self?.people = page.items
+                self?.lastSyncedAt = page.lastSyncedAt
+            })
+            .store(in: &cancellables)
+    }
+}
