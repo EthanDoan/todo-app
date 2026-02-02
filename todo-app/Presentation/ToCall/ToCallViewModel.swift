@@ -7,11 +7,17 @@ final class ToCallViewModel: ObservableObject {
 
     private let fetchPageUseCase: FetchToCallPageUseCase
     private let retryUseCase: RetryToCallUseCase
+    private let updateToCallCountUseCase: UpdateToCallCountUseCase
     private var cancellables = Set<AnyCancellable>()
 
-    init(fetchPageUseCase: FetchToCallPageUseCase, retryUseCase: RetryToCallUseCase) {
+    init(
+        fetchPageUseCase: FetchToCallPageUseCase,
+        retryUseCase: RetryToCallUseCase,
+        updateToCallCountUseCase: UpdateToCallCountUseCase
+    ) {
         self.fetchPageUseCase = fetchPageUseCase
         self.retryUseCase = retryUseCase
+        self.updateToCallCountUseCase = updateToCallCountUseCase
     }
 
     func loadFirstPage() {
@@ -19,6 +25,7 @@ final class ToCallViewModel: ObservableObject {
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] page in
                 self?.people = page.items
                 self?.lastSyncedAt = page.lastSyncedAt
+                self?.updateToCallCountUseCase.execute(count: page.items.count)
             })
             .store(in: &cancellables)
     }
@@ -28,6 +35,7 @@ final class ToCallViewModel: ObservableObject {
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] page in
                 self?.people = page.items
                 self?.lastSyncedAt = page.lastSyncedAt
+                self?.updateToCallCountUseCase.execute(count: page.items.count)
             })
             .store(in: &cancellables)
     }
