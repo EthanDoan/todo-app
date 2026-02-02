@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 
 protocol SetWishlistUseCase {
     func execute(id: UUID, isWishlisted: Bool) -> AnyPublisher<Bool, Error>

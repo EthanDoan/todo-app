@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 
 protocol ToBuyRepository {
     func fetchItems(sort: ToBuySortOption, filter: ToBuyFilter) -> AnyPublisher<[ToBuyItem], Error>

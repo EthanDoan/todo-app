@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 
 protocol SyncRepository {
     var pendingSyncPublisher: AnyPublisher<[SellSyncItem], Never> { get }

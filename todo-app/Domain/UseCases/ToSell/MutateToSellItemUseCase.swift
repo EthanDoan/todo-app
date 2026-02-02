@@ -1,3 +1,5 @@
+import Foundation
+
 protocol MutateToSellItemUseCase {
     func add(title: String, price: Decimal) throws
     func update(item: ToSellItem) throws

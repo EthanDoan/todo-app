@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 
 final class RemoteToCallRepository: ToCallRepository {
     private let apiClient: ToCallAPIClient

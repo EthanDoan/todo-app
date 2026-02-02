@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 
 protocol FetchToBuyDetailUseCase {
     func execute(id: UUID) -> AnyPublisher<ToBuyItemDetail, Error>

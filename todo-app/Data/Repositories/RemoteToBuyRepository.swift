@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 
 final class RemoteToBuyRepository: ToBuyRepository {
     private let apiClient: ToBuyAPIClient
