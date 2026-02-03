@@ -18,7 +18,6 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func bind() {
-        startUpdatesUseCase.execute()
         observeCountersUseCase.execute()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] counters in
