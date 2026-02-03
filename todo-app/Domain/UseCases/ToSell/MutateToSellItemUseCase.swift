@@ -1,7 +1,7 @@
 import Foundation
 
 protocol MutateToSellItemUseCase {
-    func add(title: String, price: Decimal) throws
+    func add(title: String, price: Decimal, isSold: Bool) throws
     func update(item: ToSellItem) throws
     func delete(id: UUID)
     func bulkDelete(ids: [UUID])
@@ -11,8 +11,8 @@ protocol MutateToSellItemUseCase {
 struct DefaultMutateToSellItemUseCase: MutateToSellItemUseCase {
     let repository: ToSellRepository
 
-    func add(title: String, price: Decimal) throws {
-        try repository.addItem(title: title, price: price)
+    func add(title: String, price: Decimal, isSold: Bool) throws {
+        try repository.addItem(title: title, price: price, isSold: isSold)
     }
 
     func update(item: ToSellItem) throws {

@@ -23,7 +23,12 @@ final class AppContainer {
         let wishlistStore = WishlistStore()
         self.toBuyRepository = RemoteToBuyRepository(apiClient: toBuyApiClient, wishlistStore: wishlistStore)
 
-        self.toSellRepository = LocalToSellRepository()
+        do {
+            let toSellStore = try SQLiteItemToSellStore()
+            self.toSellRepository = LocalToSellRepository(store: toSellStore)
+        } catch {
+            fatalError("Failed to initialize SQLite store: \(error)")
+        }
         self.syncRepository = HybridSyncRepository()
     }
 
