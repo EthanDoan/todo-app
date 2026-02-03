@@ -10,7 +10,6 @@ final class ToCallViewModel: ObservableObject {
 
     private let fetchPageUseCase: FetchToCallPageUseCase
     private let retryUseCase: RetryToCallUseCase
-    private let updateToCallCountUseCase: UpdateToCallCountUseCase
     private var cancellables = Set<AnyCancellable>()
     private var pageLoadCancellable: AnyCancellable?
     private var nextPageCancellable: AnyCancellable?
@@ -19,12 +18,10 @@ final class ToCallViewModel: ObservableObject {
 
     init(
         fetchPageUseCase: FetchToCallPageUseCase,
-        retryUseCase: RetryToCallUseCase,
-        updateToCallCountUseCase: UpdateToCallCountUseCase
+        retryUseCase: RetryToCallUseCase
     ) {
         self.fetchPageUseCase = fetchPageUseCase
         self.retryUseCase = retryUseCase
-        self.updateToCallCountUseCase = updateToCallCountUseCase
 
         $searchText
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -49,7 +46,6 @@ final class ToCallViewModel: ObservableObject {
                 self?.lastSyncedAt = page.lastSyncedAt
                 self?.nextPage = page.nextPage
                 self?.hasNextPage = page.nextPage != nil
-                self?.updateToCallCountUseCase.execute(count: page.items.count)
             })
     }
 
@@ -61,7 +57,6 @@ final class ToCallViewModel: ObservableObject {
                 self?.lastSyncedAt = page.lastSyncedAt
                 self?.nextPage = page.nextPage
                 self?.hasNextPage = page.nextPage != nil
-                self?.updateToCallCountUseCase.execute(count: page.items.count)
             })
     }
 
@@ -80,7 +75,6 @@ final class ToCallViewModel: ObservableObject {
                     self.lastSyncedAt = page.lastSyncedAt
                     self.nextPage = page.nextPage
                     self.hasNextPage = page.nextPage != nil
-                    self.updateToCallCountUseCase.execute(count: self.people.count)
                 }
             )
     }

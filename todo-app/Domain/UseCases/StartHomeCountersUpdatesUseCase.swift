@@ -8,17 +8,20 @@ final class DefaultStartHomeCountersUpdatesUseCase: StartHomeCountersUpdatesUseC
     private let counterRepository: HomeCounterRepository
     private let observeItemsUseCase: ObserveToBuyItemsUseCase
     private let fetchItemsUseCase: FetchToBuyItemsUseCase
+    private let observeToCallUseCase: ObserveToCallPeopleUseCase
     private var cancellables = Set<AnyCancellable>()
     private var hasStarted = false
 
     init(
         counterRepository: HomeCounterRepository,
         observeItemsUseCase: ObserveToBuyItemsUseCase,
-        fetchItemsUseCase: FetchToBuyItemsUseCase
+        fetchItemsUseCase: FetchToBuyItemsUseCase,
+        observeToCallUseCase: ObserveToCallPeopleUseCase
     ) {
         self.counterRepository = counterRepository
         self.observeItemsUseCase = observeItemsUseCase
         self.fetchItemsUseCase = fetchItemsUseCase
+        self.observeToCallUseCase = observeToCallUseCase
     }
 
     func execute() {
@@ -33,6 +36,13 @@ final class DefaultStartHomeCountersUpdatesUseCase: StartHomeCountersUpdatesUseC
             .map(\.count)
             .sink { [weak self] count in
                 self?.counterRepository.updateToBuyCount(count)
+            }
+            .store(in: &cancellables)
+
+        observeToCallUseCase.execute()
+            .map(\.count)
+            .sink { [weak self] count in
+                self?.counterRepository.updateToCallCount(count)
             }
             .store(in: &cancellables)
     }
