@@ -60,7 +60,7 @@ final class SQLiteItemToSellStore {
 
     func deleteItems(ids: [UUID]) throws {
         let idStrings = ids.map { $0.uuidString }
-        let row = table.filter(id.in(idStrings))
+        let row = table.filter(idStrings.contains(id))
         try db.run(row.delete())
     }
 
