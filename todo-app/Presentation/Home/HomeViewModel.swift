@@ -15,6 +15,7 @@ final class HomeViewModel: ObservableObject {
         self.observeCountersUseCase = observeCountersUseCase
         self.startUpdatesUseCase = startUpdatesUseCase
         bind()
+        startUpdatesUseCase.execute()
     }
 
     private func bind() {

@@ -14,7 +14,6 @@ final class AppContainer {
         let counterRepository = InMemoryHomeCounterRepository()
         self.counterRepository = counterRepository
         self.observeCountersUseCase = DefaultObserveHomeCountersUseCase(repository: counterRepository)
-        self.startUpdatesUseCase = DefaultStartHomeCountersUpdatesUseCase(repository: counterRepository)
 
         let toCallApiClient = ToCallAPIClient()
         self.toCallRepository = RemoteToCallRepository(apiClient: toCallApiClient)
@@ -22,6 +21,10 @@ final class AppContainer {
         let toBuyApiClient = ToBuyAPIClient()
         let wishlistStore = WishlistStore()
         self.toBuyRepository = RemoteToBuyRepository(apiClient: toBuyApiClient, wishlistStore: wishlistStore)
+        self.startUpdatesUseCase = DefaultStartHomeCountersUpdatesUseCase(
+            counterRepository: counterRepository,
+            toBuyRepository: toBuyRepository
+        )
 
         self.toSellRepository = LocalToSellRepository()
         self.syncRepository = HybridSyncRepository()

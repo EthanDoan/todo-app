@@ -63,6 +63,22 @@ final class ToBuyAPIClient {
         }
         .eraseToAnyPublisher()
     }
+
+    func observeNewItems() -> AnyPublisher<ToBuyItem, Never> {
+        Timer.publish(every: 8, on: .main, in: .common)
+            .autoconnect()
+            .scan(0) { index, _ in index + 1 }
+            .map { index in
+                let item = Self.realtimeItems[index % Self.realtimeItems.count]
+                return ToBuyItem(
+                    id: UUID(),
+                    title: item.title,
+                    price: item.price,
+                    isWishlisted: false
+                )
+            }
+            .eraseToAnyPublisher()
+    }
 }
 
 private enum ToBuyAPIError: Error {
@@ -82,6 +98,11 @@ private struct ToBuyMockItem: Decodable {
 }
 
 private extension ToBuyAPIClient {
+    struct ToBuyRealtimeItem {
+        let title: String
+        let price: Decimal
+    }
+
     static func loadMockItems() throws -> [ToBuyMockItem] {
         let data = Data(mockPayload.utf8)
         let response = try JSONDecoder().decode(ToBuyMockResponse.self, from: data)
@@ -147,4 +168,10 @@ private extension ToBuyAPIClient {
       ]
     }
     """
+
+    static let realtimeItems: [ToBuyRealtimeItem] = [
+        ToBuyRealtimeItem(title: "Portable Phone Charger", price: 29.99),
+        ToBuyRealtimeItem(title: "Smart Notebook", price: 16.40),
+        ToBuyRealtimeItem(title: "Compact Bluetooth Speaker", price: 45.90)
+    ]
 }

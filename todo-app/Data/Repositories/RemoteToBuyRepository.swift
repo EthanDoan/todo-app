@@ -53,4 +53,17 @@ final class RemoteToBuyRepository: ToBuyRepository {
     func loadWishlist() -> AnyPublisher<[UUID], Error> {
         wishlistStore.loadWishlist()
     }
+
+    func observeNewItems() -> AnyPublisher<ToBuyItem, Never> {
+        apiClient.observeNewItems()
+            .map { item in
+                ToBuyItem(
+                    id: item.id,
+                    title: item.title,
+                    price: item.price,
+                    isWishlisted: false
+                )
+            }
+            .eraseToAnyPublisher()
+    }
 }
