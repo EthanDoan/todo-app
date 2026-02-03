@@ -10,11 +10,17 @@ final class ToBuyViewModel: ObservableObject {
 
     private let fetchItemsUseCase: FetchToBuyItemsUseCase
     private let setWishlistUseCase: SetWishlistUseCase
+    private let updateToBuyCountUseCase: UpdateToBuyCountUseCase
     private var cancellables = Set<AnyCancellable>()
 
-    init(fetchItemsUseCase: FetchToBuyItemsUseCase, setWishlistUseCase: SetWishlistUseCase) {
+    init(
+        fetchItemsUseCase: FetchToBuyItemsUseCase,
+        setWishlistUseCase: SetWishlistUseCase,
+        updateToBuyCountUseCase: UpdateToBuyCountUseCase
+    ) {
         self.fetchItemsUseCase = fetchItemsUseCase
         self.setWishlistUseCase = setWishlistUseCase
+        self.updateToBuyCountUseCase = updateToBuyCountUseCase
     }
 
     func loadItems() {
@@ -26,6 +32,7 @@ final class ToBuyViewModel: ObservableObject {
                 self?.isLoading = false
             }, receiveValue: { [weak self] items in
                 self?.items = items
+                self?.updateToBuyCountUseCase.execute(count: items.count)
             })
             .store(in: &cancellables)
     }
