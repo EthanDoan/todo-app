@@ -7,7 +7,7 @@ final class ToCallAPIClient {
         let phoneNumber: String
     }
 
-    private let pageSize = 5
+    private let pageSize = 10
     private let seeds: [SeedPerson] = [
         SeedPerson(name: "Alicia Green", phoneNumber: "(415) 555-0182"),
         SeedPerson(name: "Ben Turner", phoneNumber: "(415) 555-0191"),
@@ -23,7 +23,22 @@ final class ToCallAPIClient {
         SeedPerson(name: "Liam O'Connor", phoneNumber: "(415) 555-0172"),
         SeedPerson(name: "Maya Singh", phoneNumber: "(415) 555-0198"),
         SeedPerson(name: "Noah Rivera", phoneNumber: "(415) 555-0129"),
-        SeedPerson(name: "Priya Sharma", phoneNumber: "(415) 555-0117")
+        SeedPerson(name: "Priya Sharma", phoneNumber: "(415) 555-0117"),
+        SeedPerson(name: "Quinn Harper", phoneNumber: "(415) 555-0103"),
+        SeedPerson(name: "Rosa Martinez", phoneNumber: "(415) 555-0193"),
+        SeedPerson(name: "Samir Khan", phoneNumber: "(415) 555-0162"),
+        SeedPerson(name: "Tessa Miller", phoneNumber: "(415) 555-0131"),
+        SeedPerson(name: "Uma Patel", phoneNumber: "(415) 555-0149"),
+        SeedPerson(name: "Victor Alvarez", phoneNumber: "(415) 555-0187"),
+        SeedPerson(name: "Wendy Brooks", phoneNumber: "(415) 555-0110"),
+        SeedPerson(name: "Xavier Ortiz", phoneNumber: "(415) 555-0175"),
+        SeedPerson(name: "Yara Haddad", phoneNumber: "(415) 555-0126"),
+        SeedPerson(name: "Zane Cooper", phoneNumber: "(415) 555-0168"),
+        SeedPerson(name: "Amelia Rossi", phoneNumber: "(415) 555-0196"),
+        SeedPerson(name: "Bruno Silva", phoneNumber: "(415) 555-0105"),
+        SeedPerson(name: "Chloe Nguyen", phoneNumber: "(415) 555-0134"),
+        SeedPerson(name: "Diego Morales", phoneNumber: "(415) 555-0158"),
+        SeedPerson(name: "Elena Fischer", phoneNumber: "(415) 555-0141")
     ]
 
     func fetchPeople(page: Int, filter: ToCallFilter) -> AnyPublisher<ToCallPage, Error> {

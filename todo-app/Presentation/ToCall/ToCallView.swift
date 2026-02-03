@@ -13,12 +13,26 @@ struct ToCallView: View {
                 .font(.largeTitle.bold())
             Text("Last synced: \(viewModel.lastSyncedAt?.description ?? "Never")")
                 .font(.caption)
-            List(viewModel.people) { person in
-                VStack(alignment: .leading) {
-                    Text(person.name)
-                    Text(person.phoneNumber)
+            Text("Total people: \(viewModel.people.count)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            List {
+                ForEach(viewModel.people) { person in
+                    VStack(alignment: .leading) {
+                        Text(person.name)
+                        Text(person.phoneNumber)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .onAppear {
+                        viewModel.loadNextPageIfNeeded(currentItem: person)
+                    }
+                }
+                if !viewModel.hasNextPage && !viewModel.people.isEmpty {
+                    Text("No more people to load.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
         }
