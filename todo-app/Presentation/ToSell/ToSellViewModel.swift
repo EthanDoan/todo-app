@@ -14,11 +14,17 @@ final class ToSellViewModel: ObservableObject {
 
     private let observeItemsUseCase: ObserveToSellItemsUseCase
     private let mutateUseCase: MutateToSellItemUseCase
+    private let updateToSellCountUseCase: UpdateToSellCountUseCase
     private var cancellables = Set<AnyCancellable>()
 
-    init(observeItemsUseCase: ObserveToSellItemsUseCase, mutateUseCase: MutateToSellItemUseCase) {
+    init(
+        observeItemsUseCase: ObserveToSellItemsUseCase,
+        mutateUseCase: MutateToSellItemUseCase,
+        updateToSellCountUseCase: UpdateToSellCountUseCase
+    ) {
         self.observeItemsUseCase = observeItemsUseCase
         self.mutateUseCase = mutateUseCase
+        self.updateToSellCountUseCase = updateToSellCountUseCase
         bind()
     }
 
@@ -27,6 +33,8 @@ final class ToSellViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] items in
                 self?.items = items
+                let pendingCount = items.filter { !$0.isSold }.count
+                self?.updateToSellCountUseCase.execute(count: pendingCount)
             }
             .store(in: &cancellables)
     }
