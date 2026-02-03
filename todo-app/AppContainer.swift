@@ -52,10 +52,12 @@ final class AppContainer {
         let fetchItemsUseCase = DefaultFetchToBuyItemsUseCase(repository: toBuyRepository)
         let setWishlistUseCase = DefaultSetWishlistUseCase(repository: toBuyRepository)
         let updateToBuyCountUseCase = DefaultUpdateToBuyCountUseCase(repository: counterRepository)
+        let observeNewItemsUseCase = DefaultObserveNewToBuyItemsUseCase(repository: toBuyRepository)
         return ToBuyViewModel(
             fetchItemsUseCase: fetchItemsUseCase,
             setWishlistUseCase: setWishlistUseCase,
-            updateToBuyCountUseCase: updateToBuyCountUseCase
+            updateToBuyCountUseCase: updateToBuyCountUseCase,
+            observeNewItemsUseCase: observeNewItemsUseCase
         )
     }
 
