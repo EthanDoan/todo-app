@@ -33,6 +33,14 @@ final class ToCallViewModel: ObservableObject {
                 self?.applyFilter(text)
             }
             .store(in: &cancellables)
+
+        $people
+            .map { $0.count }
+            .removeDuplicates()
+            .sink { [weak self] count in
+                self?.updateToCallCountUseCase.execute(count: count)
+            }
+            .store(in: &cancellables)
     }
 
     func loadFirstPage() {
@@ -47,7 +55,6 @@ final class ToCallViewModel: ObservableObject {
                 self?.lastSyncedAt = page.lastSyncedAt
                 self?.nextPage = page.nextPage
                 self?.hasNextPage = page.nextPage != nil
-                self?.updateToCallCountUseCase.execute(count: page.items.count)
             })
     }
 
@@ -59,7 +66,6 @@ final class ToCallViewModel: ObservableObject {
                 self?.lastSyncedAt = page.lastSyncedAt
                 self?.nextPage = page.nextPage
                 self?.hasNextPage = page.nextPage != nil
-                self?.updateToCallCountUseCase.execute(count: page.items.count)
             })
     }
 
@@ -78,7 +84,6 @@ final class ToCallViewModel: ObservableObject {
                     self.lastSyncedAt = page.lastSyncedAt
                     self.nextPage = page.nextPage
                     self.hasNextPage = page.nextPage != nil
-                    self.updateToCallCountUseCase.execute(count: self.people.count)
                 }
             )
     }
