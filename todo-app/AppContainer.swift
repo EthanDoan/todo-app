@@ -48,7 +48,12 @@ final class AppContainer {
     func makeToBuyViewModel() -> ToBuyViewModel {
         let fetchItemsUseCase = DefaultFetchToBuyItemsUseCase(repository: toBuyRepository)
         let setWishlistUseCase = DefaultSetWishlistUseCase(repository: toBuyRepository)
-        return ToBuyViewModel(fetchItemsUseCase: fetchItemsUseCase, setWishlistUseCase: setWishlistUseCase)
+        let updateToBuyCountUseCase = DefaultUpdateToBuyCountUseCase(repository: counterRepository)
+        return ToBuyViewModel(
+            fetchItemsUseCase: fetchItemsUseCase,
+            setWishlistUseCase: setWishlistUseCase,
+            updateToBuyCountUseCase: updateToBuyCountUseCase
+        )
     }
 
     func makeToBuyDetailViewModel(id: UUID) -> ToBuyDetailViewModel {
