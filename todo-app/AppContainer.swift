@@ -6,6 +6,8 @@ final class AppContainer {
     private let startUpdatesUseCase: StartHomeCountersUpdatesUseCase
 
     private let toCallRepository: ToCallRepository
+    private let observeToCallPeopleUseCase: ObserveToCallPeopleUseCase
+    private let fetchCachedToCallPageUseCase: FetchCachedToCallPageUseCase
     private let toBuyRepository: ToBuyRepository
     private let toSellRepository: ToSellRepository
     private let syncRepository: SyncRepository
@@ -20,6 +22,8 @@ final class AppContainer {
         self.toCallRepository = RemoteToCallRepository(apiClient: toCallApiClient, cache: toCallCacheRepository)
         let observeToCallPeopleUseCase = DefaultObserveToCallPeopleUseCase(repository: toCallCacheRepository)
         let fetchCachedToCallPageUseCase = DefaultFetchCachedToCallPageUseCase(repository: toCallCacheRepository)
+        self.observeToCallPeopleUseCase = observeToCallPeopleUseCase
+        self.fetchCachedToCallPageUseCase = fetchCachedToCallPageUseCase
 
         let toBuyApiClient = ToBuyAPIClient()
         let wishlistStore = WishlistStore()
