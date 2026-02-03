@@ -71,4 +71,9 @@ final class ToCallViewModel: ObservableObject {
             )
             .store(in: &cancellables)
     }
+
+    func loadNextPageIfNeeded(currentItem: ToCallPerson) {
+        guard hasNextPage, currentItem.id == people.last?.id else { return }
+        loadNextPage()
+    }
 }

@@ -20,19 +20,9 @@ struct ToCallView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-            }
-            if viewModel.hasNextPage {
-                Button(action: { viewModel.loadNextPage() }) {
-                    if viewModel.isLoadingNextPage {
-                        ProgressView()
-                    } else {
-                        Text("Load more")
-                            .font(.headline)
-                    }
+                .onAppear {
+                    viewModel.loadNextPageIfNeeded(currentItem: person)
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(viewModel.isLoadingNextPage)
-                .padding(.bottom, 8)
             }
         }
         .onAppear {
