@@ -2,49 +2,88 @@ import Combine
 import Foundation
 
 final class LocalToSellRepository: ToSellRepository {
+    private let store = SQLiteItemToSellStore()
     private let subject = CurrentValueSubject<[ToSellItem], Never>([])
     private var deletedStack: [[ToSellItem]] = []
+
+    init() {
+        refreshItems()
+    }
 
     var itemsPublisher: AnyPublisher<[ToSellItem], Never> {
         subject.eraseToAnyPublisher()
     }
 
     func addItem(title: String, price: Decimal) throws {
-        guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw ToSellValidationError(message: "Title is required")
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty else {
+            throw ToSellValidationError(message: "Title is required.")
         }
-        let item = ToSellItem(id: UUID(), title: title, price: price, isSold: false)
-        subject.send(subject.value + [item])
+        guard price > 0 else {
+            throw ToSellValidationError(message: "Price must be greater than zero.")
+        }
+        _ = try store.insertItem(title: trimmedTitle, price: price, isSold: false)
+        refreshItems()
     }
 
     func updateItem(_ item: ToSellItem) throws {
-        guard !item.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw ToSellValidationError(message: "Title is required")
+        let trimmedTitle = item.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty else {
+            throw ToSellValidationError(message: "Title is required.")
         }
-        let updated = subject.value.map { existing in
-            existing.id == item.id ? item : existing
+        guard item.price > 0 else {
+            throw ToSellValidationError(message: "Price must be greater than zero.")
         }
-        subject.send(updated)
+        let updated = ToSellItem(id: item.id, title: trimmedTitle, price: item.price, isSold: item.isSold)
+        try store.updateItem(updated)
+        refreshItems()
     }
 
     func deleteItem(id: UUID) {
         let items = subject.value
         deletedStack.append(items)
-        subject.send(items.filter { $0.id != id })
+        do {
+            try store.deleteItem(id: id)
+            refreshItems()
+        } catch {
+            restoreFromSnapshot(items)
+        }
     }
 
     func bulkDelete(ids: [UUID]) {
         let items = subject.value
         deletedStack.append(items)
-        let set = Set(ids)
-        subject.send(items.filter { !set.contains($0.id) })
+        do {
+            try store.deleteItems(ids: ids)
+            refreshItems()
+        } catch {
+            restoreFromSnapshot(items)
+        }
     }
 
     func undoDelete() -> Bool {
         guard let previous = deletedStack.popLast() else {
             return false
         }
-        subject.send(previous)
+        do {
+            try store.replaceAll(with: previous)
+            refreshItems()
+        } catch {
+            subject.send(previous)
+        }
         return true
+    }
+
+    private func refreshItems() {
+        do {
+            subject.send(try store.fetchAll())
+        } catch {
+            subject.send([])
+        }
+    }
+
+    private func restoreFromSnapshot(_ items: [ToSellItem]) {
+        deletedStack.removeLast()
+        subject.send(items)
     }
 }
