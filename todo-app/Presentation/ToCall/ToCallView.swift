@@ -21,6 +21,19 @@ struct ToCallView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            if viewModel.hasNextPage {
+                Button(action: { viewModel.loadNextPage() }) {
+                    if viewModel.isLoadingNextPage {
+                        ProgressView()
+                    } else {
+                        Text("Load more")
+                            .font(.headline)
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(viewModel.isLoadingNextPage)
+                .padding(.bottom, 8)
+            }
         }
         .onAppear {
             viewModel.loadFirstPage()
