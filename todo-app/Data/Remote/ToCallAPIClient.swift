@@ -2,6 +2,11 @@ import Combine
 import Foundation
 
 final class ToCallAPIClient {
+    struct ServerUpdate {
+        let people: [ToCallPerson]
+        let syncedAt: Date
+    }
+
     private struct SeedPerson {
         let id: UUID
         let name: String
@@ -50,12 +55,20 @@ final class ToCallAPIClient {
     ]
     private var people: [ServerPerson] = []
     private var fetchCount = 0
+    private var newPersonCount = 0
+    private let serverUpdatesSubject = PassthroughSubject<ServerUpdate, Never>()
+    private var updateTimerCancellable: AnyCancellable?
 
     init() {
         let now = Date()
         self.people = seeds.map { seed in
             ServerPerson(id: seed.id, name: seed.name, phoneNumber: seed.phoneNumber, lastUpdatedAt: now)
         }
+        startServerUpdates()
+    }
+
+    var serverUpdatesPublisher: AnyPublisher<ServerUpdate, Never> {
+        serverUpdatesSubject.eraseToAnyPublisher()
     }
 
     func fetchPeople(page: Int, filter: ToCallFilter, since: Date?) -> AnyPublisher<ToCallPage, Error> {
@@ -117,5 +130,32 @@ final class ToCallAPIClient {
         let changeIndex = fetchCount % people.count
         let now = Date()
         people[changeIndex].lastUpdatedAt = now
+    }
+
+    private func startServerUpdates() {
+        updateTimerCancellable = Timer.publish(every: 15, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.appendNewPerson()
+            }
+    }
+
+    private func appendNewPerson() {
+        newPersonCount += 1
+        let now = Date()
+        let newPerson = ServerPerson(
+            id: UUID(),
+            name: "New Contact \(newPersonCount)",
+            phoneNumber: String(format: "(415) 555-%04d", 2000 + newPersonCount),
+            lastUpdatedAt: now
+        )
+        people.append(newPerson)
+        let toCallPerson = ToCallPerson(
+            id: newPerson.id,
+            name: newPerson.name,
+            phoneNumber: newPerson.phoneNumber,
+            lastSyncedAt: now
+        )
+        serverUpdatesSubject.send(ServerUpdate(people: [toCallPerson], syncedAt: now))
     }
 }

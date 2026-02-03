@@ -6,10 +6,12 @@ final class RemoteToCallRepository: ToCallRepository {
     private let cache: InMemoryToCallCacheRepository
     private var lastRequest: (page: Int, filter: ToCallFilter)?
     private let pageSize = 10
+    private var cancellables = Set<AnyCancellable>()
 
     init(apiClient: ToCallAPIClient, cache: InMemoryToCallCacheRepository) {
         self.apiClient = apiClient
         self.cache = cache
+        observeServerUpdates()
     }
 
     func fetchPeople(page: Int, filter: ToCallFilter) -> AnyPublisher<ToCallPage, Error> {
@@ -39,5 +41,13 @@ final class RemoteToCallRepository: ToCallRepository {
             return Fail(error: URLError(.badServerResponse)).eraseToAnyPublisher()
         }
         return fetchPeople(page: request.page, filter: request.filter)
+    }
+
+    private func observeServerUpdates() {
+        apiClient.serverUpdatesPublisher
+            .sink { [weak self] update in
+                self?.cache.merge(people: update.people, syncedAt: update.syncedAt)
+            }
+            .store(in: &cancellables)
     }
 }
