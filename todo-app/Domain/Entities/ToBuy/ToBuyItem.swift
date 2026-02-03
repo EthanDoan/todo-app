@@ -15,10 +15,21 @@ struct ToBuyItemDetail: Equatable {
     let isWishlisted: Bool
 }
 
-enum ToBuySortOption: Equatable {
+enum ToBuySortOption: String, CaseIterable, Equatable {
     case priceAscending
     case priceDescending
     case titleAscending
+
+    var label: String {
+        switch self {
+        case .priceAscending:
+            return "Price: Low to High"
+        case .priceDescending:
+            return "Price: High to Low"
+        case .titleAscending:
+            return "Title"
+        }
+    }
 }
 
 struct ToBuyFilter: Equatable {

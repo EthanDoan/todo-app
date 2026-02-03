@@ -13,7 +13,12 @@ struct ContentView: View {
         HomeView(
             viewModel: viewModel,
             toCallDestination: AnyView(ToCallView(viewModel: container.makeToCallViewModel())),
-            toBuyDestination: AnyView(ToBuyView(viewModel: container.makeToBuyViewModel())),
+            toBuyDestination: AnyView(
+                ToBuyView(
+                    viewModel: container.makeToBuyViewModel(),
+                    detailViewModelBuilder: container.makeToBuyDetailViewModel
+                )
+            ),
             toSellDestination: AnyView(ToSellView(viewModel: container.makeToSellViewModel())),
             syncDestination: AnyView(SyncView(viewModel: container.makeSyncViewModel()))
         )
