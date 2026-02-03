@@ -69,7 +69,12 @@ final class AppContainer {
     func makeToSellViewModel() -> ToSellViewModel {
         let observeItemsUseCase = DefaultObserveToSellItemsUseCase(repository: toSellRepository)
         let mutateUseCase = DefaultMutateToSellItemUseCase(repository: toSellRepository)
-        return ToSellViewModel(observeItemsUseCase: observeItemsUseCase, mutateUseCase: mutateUseCase)
+        let updateToSellCountUseCase = DefaultUpdateToSellCountUseCase(repository: counterRepository)
+        return ToSellViewModel(
+            observeItemsUseCase: observeItemsUseCase,
+            mutateUseCase: mutateUseCase,
+            updateToSellCountUseCase: updateToSellCountUseCase
+        )
     }
 
     func makeSyncViewModel() -> SyncViewModel {
