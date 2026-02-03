@@ -6,4 +6,5 @@ protocol ToBuyRepository {
     func fetchDetail(id: UUID) -> AnyPublisher<ToBuyItemDetail, Error>
     func setWishlist(id: UUID, isWishlisted: Bool) -> AnyPublisher<Bool, Error>
     func loadWishlist() -> AnyPublisher<[UUID], Error>
+    func observeItems() -> AnyPublisher<[ToBuyItem], Never>
 }

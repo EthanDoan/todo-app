@@ -14,14 +14,25 @@ final class AppContainer {
         let counterRepository = InMemoryHomeCounterRepository()
         self.counterRepository = counterRepository
         self.observeCountersUseCase = DefaultObserveHomeCountersUseCase(repository: counterRepository)
-        self.startUpdatesUseCase = DefaultStartHomeCountersUpdatesUseCase(repository: counterRepository)
 
         let toCallApiClient = ToCallAPIClient()
         self.toCallRepository = RemoteToCallRepository(apiClient: toCallApiClient)
 
         let toBuyApiClient = ToBuyAPIClient()
         let wishlistStore = WishlistStore()
-        self.toBuyRepository = RemoteToBuyRepository(apiClient: toBuyApiClient, wishlistStore: wishlistStore)
+        let toBuyStore = InMemoryToBuyStore()
+        self.toBuyRepository = RemoteToBuyRepository(
+            apiClient: toBuyApiClient,
+            wishlistStore: wishlistStore,
+            store: toBuyStore
+        )
+        let observeToBuyItemsUseCase = DefaultObserveToBuyItemsUseCase(repository: toBuyRepository)
+        let fetchToBuyItemsUseCase = DefaultFetchToBuyItemsUseCase(repository: toBuyRepository)
+        self.startUpdatesUseCase = DefaultStartHomeCountersUpdatesUseCase(
+            counterRepository: counterRepository,
+            observeItemsUseCase: observeToBuyItemsUseCase,
+            fetchItemsUseCase: fetchToBuyItemsUseCase
+        )
 
         self.toSellRepository = LocalToSellRepository()
         self.syncRepository = HybridSyncRepository()
@@ -48,11 +59,11 @@ final class AppContainer {
     func makeToBuyViewModel() -> ToBuyViewModel {
         let fetchItemsUseCase = DefaultFetchToBuyItemsUseCase(repository: toBuyRepository)
         let setWishlistUseCase = DefaultSetWishlistUseCase(repository: toBuyRepository)
-        let updateToBuyCountUseCase = DefaultUpdateToBuyCountUseCase(repository: counterRepository)
+        let observeItemsUseCase = DefaultObserveToBuyItemsUseCase(repository: toBuyRepository)
         return ToBuyViewModel(
             fetchItemsUseCase: fetchItemsUseCase,
             setWishlistUseCase: setWishlistUseCase,
-            updateToBuyCountUseCase: updateToBuyCountUseCase
+            observeItemsUseCase: observeItemsUseCase
         )
     }
 

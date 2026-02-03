@@ -48,7 +48,7 @@ struct ToBuyView: View {
         .navigationTitle("To Buy")
         .searchable(text: $viewModel.searchText, prompt: "Search items")
         .onAppear {
-            viewModel.loadItems()
+            viewModel.refreshItems()
         }
         .onChange(of: viewModel.sortOption, {
             viewModel.loadItems()
@@ -56,9 +56,9 @@ struct ToBuyView: View {
         .onChange(of: viewModel.searchText, {
             viewModel.loadItems()
         })
-        .onChange(of: viewModel.maxPriceText) {
+        .onChange(of: viewModel.maxPriceText, {
             viewModel.loadItems()
-        }
+        })
     }
 }
 

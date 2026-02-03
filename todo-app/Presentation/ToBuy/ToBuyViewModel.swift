@@ -10,31 +10,43 @@ final class ToBuyViewModel: ObservableObject {
 
     private let fetchItemsUseCase: FetchToBuyItemsUseCase
     private let setWishlistUseCase: SetWishlistUseCase
-    private let updateToBuyCountUseCase: UpdateToBuyCountUseCase
+    private let observeItemsUseCase: ObserveToBuyItemsUseCase
+    private var allItems: [ToBuyItem] = []
     private var cancellables = Set<AnyCancellable>()
 
     init(
         fetchItemsUseCase: FetchToBuyItemsUseCase,
         setWishlistUseCase: SetWishlistUseCase,
-        updateToBuyCountUseCase: UpdateToBuyCountUseCase
+        observeItemsUseCase: ObserveToBuyItemsUseCase
     ) {
         self.fetchItemsUseCase = fetchItemsUseCase
         self.setWishlistUseCase = setWishlistUseCase
-        self.updateToBuyCountUseCase = updateToBuyCountUseCase
+        self.observeItemsUseCase = observeItemsUseCase
+
+        observeItemsUseCase.execute()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] items in
+                self?.allItems = items
+                self?.applyFilters()
+            }
+            .store(in: &cancellables)
     }
 
-    func loadItems() {
+    func refreshItems() {
         isLoading = true
-        let filter = ToBuyFilter(searchText: normalizedSearchText(), maxPrice: parsedMaxPrice())
-        fetchItemsUseCase.execute(sort: sortOption, filter: filter)
+        let filter = ToBuyFilter(searchText: nil, maxPrice: nil)
+        fetchItemsUseCase.execute(sort: .titleAscending, filter: filter)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] _ in
                 self?.isLoading = false
-            }, receiveValue: { [weak self] items in
-                self?.items = items
-                self?.updateToBuyCountUseCase.execute(count: items.count)
+            }, receiveValue: { [weak self] _ in
+                self?.applyFilters()
             })
             .store(in: &cancellables)
+    }
+
+    func loadItems() {
+        applyFilters()
     }
 
     func toggleWishlist(for item: ToBuyItem) {
@@ -59,5 +71,33 @@ final class ToBuyViewModel: ObservableObject {
         let trimmed = maxPriceText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
         return Decimal(string: trimmed)
+    }
+
+    private func applyFilters() {
+        let filtered = allItems.filter { shouldInclude($0) }
+        items = sortedItems(filtered)
+    }
+
+    private func shouldInclude(_ item: ToBuyItem) -> Bool {
+        if let searchText = normalizedSearchText()?.lowercased() {
+            guard item.title.lowercased().contains(searchText) else { return false }
+        }
+
+        if let maxPrice = parsedMaxPrice() {
+            guard item.price <= maxPrice else { return false }
+        }
+
+        return true
+    }
+
+    private func sortedItems(_ items: [ToBuyItem]) -> [ToBuyItem] {
+        switch sortOption {
+        case .priceAscending:
+            return items.sorted { $0.price < $1.price }
+        case .priceDescending:
+            return items.sorted { $0.price > $1.price }
+        case .titleAscending:
+            return items.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+        }
     }
 }
