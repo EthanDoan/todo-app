@@ -27,8 +27,10 @@ final class ToCallViewModel: ObservableObject {
         self.updateToCallCountUseCase = updateToCallCountUseCase
 
         $searchText
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
             .removeDuplicates()
+            .dropFirst()
             .sink { [weak self] text in
                 self?.applyFilter(text)
             }
