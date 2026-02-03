@@ -4,6 +4,7 @@ import Foundation
 final class InMemoryToCallCacheRepository: ToCallCacheRepository {
     private let subject = CurrentValueSubject<[ToCallPerson], Never>([])
     private(set) var lastSyncedAt: Date?
+    private let pageSize = 10
 
     func observePeople() -> AnyPublisher<[ToCallPerson], Never> {
         subject.eraseToAnyPublisher()
@@ -12,6 +13,7 @@ final class InMemoryToCallCacheRepository: ToCallCacheRepository {
     func merge(people: [ToCallPerson], syncedAt: Date?) {
         var cachedPeople = subject.value
         var indexById: [UUID: Int] = [:]
+        var newPeople: [ToCallPerson] = []
 
         for (index, person) in cachedPeople.enumerated() {
             indexById[person.id] = index
@@ -27,8 +29,12 @@ final class InMemoryToCallCacheRepository: ToCallCacheRepository {
             if let index = indexById[person.id] {
                 cachedPeople[index] = updatedPerson
             } else {
-                cachedPeople.append(updatedPerson)
+                newPeople.append(updatedPerson)
             }
+        }
+
+        if !newPeople.isEmpty {
+            cachedPeople.insert(contentsOf: newPeople, at: 0)
         }
 
         if let syncedAt {
@@ -38,7 +44,7 @@ final class InMemoryToCallCacheRepository: ToCallCacheRepository {
         subject.send(cachedPeople)
     }
 
-    func page(page: Int, pageSize: Int, filter: ToCallFilter) -> ToCallPage {
+    func page(page: Int, filter: ToCallFilter) -> ToCallPage {
         let searchText = filter.searchText?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let filtered = subject.value.filter { person in
             guard let searchText, !searchText.isEmpty else { return true }

@@ -18,6 +18,8 @@ final class AppContainer {
         let toCallApiClient = ToCallAPIClient()
         let toCallCacheRepository = InMemoryToCallCacheRepository()
         self.toCallRepository = RemoteToCallRepository(apiClient: toCallApiClient, cache: toCallCacheRepository)
+        let observeToCallPeopleUseCase = DefaultObserveToCallPeopleUseCase(repository: toCallCacheRepository)
+        let fetchCachedToCallPageUseCase = DefaultFetchCachedToCallPageUseCase(repository: toCallCacheRepository)
 
         let toBuyApiClient = ToBuyAPIClient()
         let wishlistStore = WishlistStore()
@@ -33,7 +35,7 @@ final class AppContainer {
             counterRepository: counterRepository,
             observeItemsUseCase: observeToBuyItemsUseCase,
             fetchItemsUseCase: fetchToBuyItemsUseCase,
-            observeToCallUseCase: DefaultObserveToCallPeopleUseCase(repository: toCallCacheRepository)
+            observeToCallUseCase: observeToCallPeopleUseCase
         )
 
         self.toSellRepository = LocalToSellRepository()
@@ -52,7 +54,9 @@ final class AppContainer {
         let retryUseCase = DefaultRetryToCallUseCase(repository: toCallRepository)
         return ToCallViewModel(
             fetchPageUseCase: fetchPageUseCase,
-            retryUseCase: retryUseCase
+            retryUseCase: retryUseCase,
+            observeToCallUseCase: observeToCallPeopleUseCase,
+            fetchCachedPageUseCase: fetchCachedToCallPageUseCase
         )
     }
 

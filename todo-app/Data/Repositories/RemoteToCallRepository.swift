@@ -5,7 +5,6 @@ final class RemoteToCallRepository: ToCallRepository {
     private let apiClient: ToCallAPIClient
     private let cache: InMemoryToCallCacheRepository
     private var lastRequest: (page: Int, filter: ToCallFilter)?
-    private let pageSize = 10
     private var cancellables = Set<AnyCancellable>()
 
     init(apiClient: ToCallAPIClient, cache: InMemoryToCallCacheRepository) {
@@ -25,12 +24,12 @@ final class RemoteToCallRepository: ToCallRepository {
                 .map { [weak self] response in
                     guard let self else { return response }
                     self.cache.merge(people: response.items, syncedAt: response.lastSyncedAt)
-                    return self.cache.page(page: page, pageSize: self.pageSize, filter: filter)
+                    return self.cache.page(page: page, filter: filter)
                 }
                 .eraseToAnyPublisher()
         }
 
-        let pageResult = cache.page(page: page, pageSize: pageSize, filter: filter)
+        let pageResult = cache.page(page: page, filter: filter)
         return Just(pageResult)
             .setFailureType(to: Error.self)
             .eraseToAnyPublisher()
