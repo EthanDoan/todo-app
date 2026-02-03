@@ -4,10 +4,14 @@ import Foundation
 final class RemoteToBuyRepository: ToBuyRepository {
     private let apiClient: ToBuyAPIClient
     private let wishlistStore: WishlistStore
+    private let store: InMemoryToBuyStore
+    private var cancellables = Set<AnyCancellable>()
 
-    init(apiClient: ToBuyAPIClient, wishlistStore: WishlistStore) {
+    init(apiClient: ToBuyAPIClient, wishlistStore: WishlistStore, store: InMemoryToBuyStore) {
         self.apiClient = apiClient
         self.wishlistStore = wishlistStore
+        self.store = store
+        subscribeToRealtimeItems()
     }
 
     func fetchItems(sort: ToBuySortOption, filter: ToBuyFilter) -> AnyPublisher<[ToBuyItem], Error> {
@@ -26,6 +30,9 @@ final class RemoteToBuyRepository: ToBuyRepository {
                 )
             }
         }
+        .handleEvents(receiveOutput: { [weak self] items in
+            self?.store.updateItems(self?.mergedItems(items) ?? items)
+        })
         .eraseToAnyPublisher()
     }
 
@@ -48,22 +55,31 @@ final class RemoteToBuyRepository: ToBuyRepository {
 
     func setWishlist(id: UUID, isWishlisted: Bool) -> AnyPublisher<Bool, Error> {
         wishlistStore.setWishlist(id: id, isWishlisted: isWishlisted)
+            .handleEvents(receiveOutput: { [weak self] _ in
+                self?.store.updateWishlist(id: id, isWishlisted: isWishlisted)
+            })
+            .eraseToAnyPublisher()
     }
 
     func loadWishlist() -> AnyPublisher<[UUID], Error> {
         wishlistStore.loadWishlist()
     }
 
-    func observeNewItems() -> AnyPublisher<ToBuyItem, Never> {
+    func observeItems() -> AnyPublisher<[ToBuyItem], Never> {
+        store.itemsPublisher
+    }
+
+    private func subscribeToRealtimeItems() {
         apiClient.observeNewItems()
-            .map { item in
-                ToBuyItem(
-                    id: item.id,
-                    title: item.title,
-                    price: item.price,
-                    isWishlisted: false
-                )
+            .sink { [weak self] item in
+                self?.store.appendItem(item)
             }
-            .eraseToAnyPublisher()
+            .store(in: &cancellables)
+    }
+
+    private func mergedItems(_ fetched: [ToBuyItem]) -> [ToBuyItem] {
+        let fetchedIds = Set(fetched.map(\.id))
+        let existing = store.currentItems().filter { !fetchedIds.contains($0.id) }
+        return fetched + existing
     }
 }

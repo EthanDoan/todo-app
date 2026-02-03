@@ -6,35 +6,33 @@ protocol StartHomeCountersUpdatesUseCase {
 
 final class DefaultStartHomeCountersUpdatesUseCase: StartHomeCountersUpdatesUseCase {
     private let counterRepository: HomeCounterRepository
-    private let toBuyRepository: ToBuyRepository
+    private let observeItemsUseCase: ObserveToBuyItemsUseCase
+    private let fetchItemsUseCase: FetchToBuyItemsUseCase
     private var cancellables = Set<AnyCancellable>()
-    private var currentToBuyCount = 0
     private var hasStarted = false
 
-    init(counterRepository: HomeCounterRepository, toBuyRepository: ToBuyRepository) {
+    init(
+        counterRepository: HomeCounterRepository,
+        observeItemsUseCase: ObserveToBuyItemsUseCase,
+        fetchItemsUseCase: FetchToBuyItemsUseCase
+    ) {
         self.counterRepository = counterRepository
-        self.toBuyRepository = toBuyRepository
+        self.observeItemsUseCase = observeItemsUseCase
+        self.fetchItemsUseCase = fetchItemsUseCase
     }
 
     func execute() {
         guard !hasStarted else { return }
         hasStarted = true
 
-        toBuyRepository.fetchItems(sort: .titleAscending, filter: ToBuyFilter(searchText: nil, maxPrice: nil))
-            .replaceError(with: [])
-            .map(\.count)
-            .sink { [weak self] count in
-                guard let self else { return }
-                currentToBuyCount = count
-                counterRepository.updateToBuyCount(count)
-            }
+        fetchItemsUseCase.execute(sort: .titleAscending, filter: ToBuyFilter(searchText: nil, maxPrice: nil))
+            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
             .store(in: &cancellables)
 
-        toBuyRepository.observeNewItems()
-            .sink { [weak self] _ in
-                guard let self else { return }
-                currentToBuyCount += 1
-                counterRepository.updateToBuyCount(currentToBuyCount)
+        observeItemsUseCase.execute()
+            .map(\.count)
+            .sink { [weak self] count in
+                self?.counterRepository.updateToBuyCount(count)
             }
             .store(in: &cancellables)
     }

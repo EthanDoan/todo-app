@@ -10,41 +10,43 @@ final class ToBuyViewModel: ObservableObject {
 
     private let fetchItemsUseCase: FetchToBuyItemsUseCase
     private let setWishlistUseCase: SetWishlistUseCase
-    private let updateToBuyCountUseCase: UpdateToBuyCountUseCase
-    private let observeNewItemsUseCase: ObserveNewToBuyItemsUseCase
+    private let observeItemsUseCase: ObserveToBuyItemsUseCase
+    private var allItems: [ToBuyItem] = []
     private var cancellables = Set<AnyCancellable>()
 
     init(
         fetchItemsUseCase: FetchToBuyItemsUseCase,
         setWishlistUseCase: SetWishlistUseCase,
-        updateToBuyCountUseCase: UpdateToBuyCountUseCase,
-        observeNewItemsUseCase: ObserveNewToBuyItemsUseCase
+        observeItemsUseCase: ObserveToBuyItemsUseCase
     ) {
         self.fetchItemsUseCase = fetchItemsUseCase
         self.setWishlistUseCase = setWishlistUseCase
-        self.updateToBuyCountUseCase = updateToBuyCountUseCase
-        self.observeNewItemsUseCase = observeNewItemsUseCase
+        self.observeItemsUseCase = observeItemsUseCase
 
-        observeNewItemsUseCase.execute()
+        observeItemsUseCase.execute()
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] item in
-                self?.handleIncomingItem(item)
+            .sink { [weak self] items in
+                self?.allItems = items
+                self?.applyFilters()
             }
             .store(in: &cancellables)
     }
 
-    func loadItems() {
+    func refreshItems() {
         isLoading = true
-        let filter = ToBuyFilter(searchText: normalizedSearchText(), maxPrice: parsedMaxPrice())
-        fetchItemsUseCase.execute(sort: sortOption, filter: filter)
+        let filter = ToBuyFilter(searchText: nil, maxPrice: nil)
+        fetchItemsUseCase.execute(sort: .titleAscending, filter: filter)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] _ in
                 self?.isLoading = false
-            }, receiveValue: { [weak self] items in
-                self?.items = items
-                self?.updateToBuyCountUseCase.execute(count: items.count)
+            }, receiveValue: { [weak self] _ in
+                self?.applyFilters()
             })
             .store(in: &cancellables)
+    }
+
+    func loadItems() {
+        applyFilters()
     }
 
     func toggleWishlist(for item: ToBuyItem) {
@@ -71,10 +73,9 @@ final class ToBuyViewModel: ObservableObject {
         return Decimal(string: trimmed)
     }
 
-    private func handleIncomingItem(_ item: ToBuyItem) {
-        guard shouldInclude(item) else { return }
-        items.append(item)
-        items = sortedItems(items)
+    private func applyFilters() {
+        let filtered = allItems.filter { shouldInclude($0) }
+        items = sortedItems(filtered)
     }
 
     private func shouldInclude(_ item: ToBuyItem) -> Bool {

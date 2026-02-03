@@ -20,10 +20,18 @@ final class AppContainer {
 
         let toBuyApiClient = ToBuyAPIClient()
         let wishlistStore = WishlistStore()
-        self.toBuyRepository = RemoteToBuyRepository(apiClient: toBuyApiClient, wishlistStore: wishlistStore)
+        let toBuyStore = InMemoryToBuyStore()
+        self.toBuyRepository = RemoteToBuyRepository(
+            apiClient: toBuyApiClient,
+            wishlistStore: wishlistStore,
+            store: toBuyStore
+        )
+        let observeToBuyItemsUseCase = DefaultObserveToBuyItemsUseCase(repository: toBuyRepository)
+        let fetchToBuyItemsUseCase = DefaultFetchToBuyItemsUseCase(repository: toBuyRepository)
         self.startUpdatesUseCase = DefaultStartHomeCountersUpdatesUseCase(
             counterRepository: counterRepository,
-            toBuyRepository: toBuyRepository
+            observeItemsUseCase: observeToBuyItemsUseCase,
+            fetchItemsUseCase: fetchToBuyItemsUseCase
         )
 
         self.toSellRepository = LocalToSellRepository()
@@ -51,13 +59,11 @@ final class AppContainer {
     func makeToBuyViewModel() -> ToBuyViewModel {
         let fetchItemsUseCase = DefaultFetchToBuyItemsUseCase(repository: toBuyRepository)
         let setWishlistUseCase = DefaultSetWishlistUseCase(repository: toBuyRepository)
-        let updateToBuyCountUseCase = DefaultUpdateToBuyCountUseCase(repository: counterRepository)
-        let observeNewItemsUseCase = DefaultObserveNewToBuyItemsUseCase(repository: toBuyRepository)
+        let observeItemsUseCase = DefaultObserveToBuyItemsUseCase(repository: toBuyRepository)
         return ToBuyViewModel(
             fetchItemsUseCase: fetchItemsUseCase,
             setWishlistUseCase: setWishlistUseCase,
-            updateToBuyCountUseCase: updateToBuyCountUseCase,
-            observeNewItemsUseCase: observeNewItemsUseCase
+            observeItemsUseCase: observeItemsUseCase
         )
     }
 
