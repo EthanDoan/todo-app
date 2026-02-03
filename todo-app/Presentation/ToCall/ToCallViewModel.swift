@@ -12,6 +12,8 @@ final class ToCallViewModel: ObservableObject {
     private let retryUseCase: RetryToCallUseCase
     private let updateToCallCountUseCase: UpdateToCallCountUseCase
     private var cancellables = Set<AnyCancellable>()
+    private var pageLoadCancellable: AnyCancellable?
+    private var nextPageCancellable: AnyCancellable?
     private var nextPage: Int?
     private var currentFilter = ToCallFilter(searchText: nil)
 
@@ -34,10 +36,12 @@ final class ToCallViewModel: ObservableObject {
     }
 
     func loadFirstPage() {
+        pageLoadCancellable?.cancel()
+        nextPageCancellable?.cancel()
         isLoadingNextPage = false
         nextPage = nil
         hasNextPage = false
-        fetchPageUseCase.execute(page: 1, filter: currentFilter)
+        pageLoadCancellable = fetchPageUseCase.execute(page: 1, filter: currentFilter)
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] page in
                 self?.people = page.items
                 self?.lastSyncedAt = page.lastSyncedAt
@@ -45,11 +49,11 @@ final class ToCallViewModel: ObservableObject {
                 self?.hasNextPage = page.nextPage != nil
                 self?.updateToCallCountUseCase.execute(count: page.items.count)
             })
-            .store(in: &cancellables)
     }
 
     func retryLastRequest() {
-        retryUseCase.execute()
+        pageLoadCancellable?.cancel()
+        pageLoadCancellable = retryUseCase.execute()
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] page in
                 self?.people = page.items
                 self?.lastSyncedAt = page.lastSyncedAt
@@ -57,13 +61,13 @@ final class ToCallViewModel: ObservableObject {
                 self?.hasNextPage = page.nextPage != nil
                 self?.updateToCallCountUseCase.execute(count: page.items.count)
             })
-            .store(in: &cancellables)
     }
 
     func loadNextPage() {
         guard let nextPage, !isLoadingNextPage else { return }
         isLoadingNextPage = true
-        fetchPageUseCase.execute(page: nextPage, filter: currentFilter)
+        nextPageCancellable?.cancel()
+        nextPageCancellable = fetchPageUseCase.execute(page: nextPage, filter: currentFilter)
             .sink(
                 receiveCompletion: { [weak self] _ in
                     self?.isLoadingNextPage = false
@@ -77,7 +81,6 @@ final class ToCallViewModel: ObservableObject {
                     self.updateToCallCountUseCase.execute(count: self.people.count)
                 }
             )
-            .store(in: &cancellables)
     }
 
     func loadNextPageIfNeeded(currentItem: ToCallPerson) {
