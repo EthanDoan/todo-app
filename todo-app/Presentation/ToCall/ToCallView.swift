@@ -16,6 +16,13 @@ struct ToCallView: View {
             Text("Total people: \(viewModel.people.count)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Search by name or phone", text: $viewModel.searchText)
+                    .textFieldStyle(.roundedBorder)
+            }
+            .padding(.horizontal)
             List {
                 ForEach(viewModel.people) { person in
                     VStack(alignment: .leading) {

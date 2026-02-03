@@ -6,6 +6,7 @@ final class ToCallViewModel: ObservableObject {
     @Published private(set) var people: [ToCallPerson] = []
     @Published private(set) var hasNextPage = false
     @Published private(set) var isLoadingNextPage = false
+    @Published var searchText = ""
 
     private let fetchPageUseCase: FetchToCallPageUseCase
     private let retryUseCase: RetryToCallUseCase
@@ -22,10 +23,17 @@ final class ToCallViewModel: ObservableObject {
         self.fetchPageUseCase = fetchPageUseCase
         self.retryUseCase = retryUseCase
         self.updateToCallCountUseCase = updateToCallCountUseCase
+
+        $searchText
+            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
+            .removeDuplicates()
+            .sink { [weak self] text in
+                self?.applyFilter(text)
+            }
+            .store(in: &cancellables)
     }
 
     func loadFirstPage() {
-        currentFilter = ToCallFilter(searchText: nil)
         isLoadingNextPage = false
         nextPage = nil
         hasNextPage = false
@@ -75,5 +83,11 @@ final class ToCallViewModel: ObservableObject {
     func loadNextPageIfNeeded(currentItem: ToCallPerson) {
         guard hasNextPage, currentItem.id == people.last?.id else { return }
         loadNextPage()
+    }
+
+    private func applyFilter(_ text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        currentFilter = ToCallFilter(searchText: trimmed.isEmpty ? nil : trimmed)
+        loadFirstPage()
     }
 }
