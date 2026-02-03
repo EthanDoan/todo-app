@@ -7,7 +7,7 @@ final class ToCallAPIClient {
         let phoneNumber: String
     }
 
-    private let pageSize = 9
+    private let pageSize = 10
     private let seeds: [SeedPerson] = [
         SeedPerson(name: "Alicia Green", phoneNumber: "(415) 555-0182"),
         SeedPerson(name: "Ben Turner", phoneNumber: "(415) 555-0191"),
