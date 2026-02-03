@@ -50,13 +50,13 @@ struct ToBuyView: View {
         .onAppear {
             viewModel.loadItems()
         }
-        .onChange(of: viewModel.sortOption) { _ in
+        .onChange(of: viewModel.sortOption, {
             viewModel.loadItems()
-        }
-        .onChange(of: viewModel.searchText) { _ in
+        })
+        .onChange(of: viewModel.searchText, {
             viewModel.loadItems()
-        }
-        .onChange(of: viewModel.maxPriceText) { _ in
+        })
+        .onChange(of: viewModel.maxPriceText) {
             viewModel.loadItems()
         }
     }
