@@ -13,9 +13,6 @@ struct ToCallView: View {
                 .font(.largeTitle.bold())
             Text("Last synced: \(viewModel.lastSyncedAt?.description ?? "Never")")
                 .font(.caption)
-            Text("Total people: \(viewModel.people.count)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
