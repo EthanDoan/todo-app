@@ -15,16 +15,19 @@ final class ToSellViewModel: ObservableObject {
     private let observeItemsUseCase: ObserveToSellItemsUseCase
     private let mutateUseCase: MutateToSellItemUseCase
     private let updateToSellCountUseCase: UpdateToSellCountUseCase
+    private let enqueueSyncUseCase: EnqueueSellSyncUseCase
     private var cancellables = Set<AnyCancellable>()
 
     init(
         observeItemsUseCase: ObserveToSellItemsUseCase,
         mutateUseCase: MutateToSellItemUseCase,
-        updateToSellCountUseCase: UpdateToSellCountUseCase
+        updateToSellCountUseCase: UpdateToSellCountUseCase,
+        enqueueSyncUseCase: EnqueueSellSyncUseCase
     ) {
         self.observeItemsUseCase = observeItemsUseCase
         self.mutateUseCase = mutateUseCase
         self.updateToSellCountUseCase = updateToSellCountUseCase
+        self.enqueueSyncUseCase = enqueueSyncUseCase
         bind()
     }
 
@@ -89,6 +92,9 @@ final class ToSellViewModel: ObservableObject {
         let updated = ToSellItem(id: item.id, title: item.title, price: item.price, isSold: isSold)
         do {
             try mutateUseCase.update(item: updated)
+            if isSold && !item.isSold {
+                try enqueueSyncUseCase.execute(itemId: item.id)
+            }
         } catch let error as ToSellValidationError {
             presentError(message: error.message)
         } catch {
