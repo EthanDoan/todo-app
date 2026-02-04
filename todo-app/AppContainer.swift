@@ -16,7 +16,8 @@ final class AppContainer {
         self.observeCountersUseCase = DefaultObserveHomeCountersUseCase(repository: counterRepository)
 
         let toCallApiClient = ToCallAPIClient()
-        self.toCallRepository = RemoteToCallRepository(apiClient: toCallApiClient)
+        let toCallStore = SQLiteToCallStore()
+        self.toCallRepository = RemoteToCallRepository(apiClient: toCallApiClient, store: toCallStore)
 
         let toBuyApiClient = ToBuyAPIClient()
         let wishlistStore = WishlistStore()
@@ -48,10 +49,12 @@ final class AppContainer {
     func makeToCallViewModel() -> ToCallViewModel {
         let fetchPageUseCase = DefaultFetchToCallPageUseCase(repository: toCallRepository)
         let retryUseCase = DefaultRetryToCallUseCase(repository: toCallRepository)
+        let observeUpdatesUseCase = DefaultObserveToCallUpdatesUseCase(repository: toCallRepository)
         let updateToCallCountUseCase = DefaultUpdateToCallCountUseCase(repository: counterRepository)
         return ToCallViewModel(
             fetchPageUseCase: fetchPageUseCase,
             retryUseCase: retryUseCase,
+            observeUpdatesUseCase: observeUpdatesUseCase,
             updateToCallCountUseCase: updateToCallCountUseCase
         )
     }

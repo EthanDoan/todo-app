@@ -7,7 +7,20 @@ final class ToCallAPIClient {
         let phoneNumber: String
     }
 
+    private struct ServerPerson {
+        let id: UUID
+        let name: String
+        let phoneNumber: String
+        let createdAt: Date
+    }
+
     private let pageSize = 10
+    private let streamInterval: TimeInterval = 6
+    private let serverQueue = DispatchQueue(label: "tocall.server.queue")
+    private let streamSubject = PassthroughSubject<ToCallPerson, Never>()
+    private var streamCancellable: AnyCancellable?
+    private var seedCursor = 0
+    private var serverPeople: [ServerPerson] = []
     private let seeds: [SeedPerson] = [
         SeedPerson(name: "Alicia Green", phoneNumber: "(415) 555-0182"),
         SeedPerson(name: "Ben Turner", phoneNumber: "(415) 555-0191"),
@@ -41,33 +54,92 @@ final class ToCallAPIClient {
         SeedPerson(name: "Elena Fischer", phoneNumber: "(415) 555-0141")
     ]
 
-    func fetchPeople(page: Int, filter: ToCallFilter) -> AnyPublisher<ToCallPage, Error> {
+    init() {
+        seedInitialData()
+        startStreaming()
+    }
+
+    func streamPeopleUpdates() -> AnyPublisher<ToCallPerson, Never> {
+        streamSubject.eraseToAnyPublisher()
+    }
+
+    func fetchPeople(page: Int, filter: ToCallFilter, lastSyncedAt: Date?) -> AnyPublisher<ToCallPage, Error> {
         guard page > 0 else {
             return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
         }
 
-        let searchText = filter.searchText?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let filteredSeeds = seeds.filter { seed in
-            guard let searchText, !searchText.isEmpty else { return true }
-            return seed.name.lowercased().contains(searchText)
-                || seed.phoneNumber.lowercased().contains(searchText)
+        let syncTime = Date()
+        let trimmedSearch = filter.searchText?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        return Deferred {
+            Future { [weak self] promise in
+                self?.serverQueue.async {
+                    guard let self else { return }
+                    let lowerBound = lastSyncedAt ?? .distantPast
+                    let filteredPeople = self.serverPeople.filter { person in
+                        person.createdAt > lowerBound && person.createdAt <= syncTime
+                    }
+                    let searchedPeople = filteredPeople.filter { person in
+                        guard let trimmedSearch, !trimmedSearch.isEmpty else { return true }
+                        return person.name.lowercased().contains(trimmedSearch)
+                            || person.phoneNumber.lowercased().contains(trimmedSearch)
+                    }
+
+                    let startIndex = (page - 1) * self.pageSize
+                    let endIndex = min(startIndex + self.pageSize, searchedPeople.count)
+                    let pagePeople = startIndex < endIndex ? Array(searchedPeople[startIndex..<endIndex]) : []
+
+                    let mapped = pagePeople.map { person in
+                        ToCallPerson(
+                            id: person.id,
+                            name: person.name,
+                            phoneNumber: person.phoneNumber,
+                            lastSyncedAt: person.createdAt
+                        )
+                    }
+                    let nextPage = endIndex < searchedPeople.count ? page + 1 : nil
+                    let response = ToCallPage(items: mapped, nextPage: nextPage, lastSyncedAt: syncTime)
+                    promise(.success(response))
+                }
+            }
         }
+        .delay(for: .milliseconds(300), scheduler: DispatchQueue.main)
+        .eraseToAnyPublisher()
+    }
 
-        let startIndex = (page - 1) * pageSize
-        let endIndex = min(startIndex + pageSize, filteredSeeds.count)
-        let pageSeeds = startIndex < endIndex ? Array(filteredSeeds[startIndex..<endIndex]) : []
-
-        let lastSyncedAt = Date()
-        let people = pageSeeds.map {
-            ToCallPerson(id: UUID(), name: $0.name, phoneNumber: $0.phoneNumber, lastSyncedAt: lastSyncedAt)
+    private func seedInitialData() {
+        let now = Date()
+        let seeded = seeds.enumerated().map { index, seed in
+            let createdAt = now.addingTimeInterval(TimeInterval(-120 * (seeds.count - index)))
+            return ServerPerson(id: UUID(), name: seed.name, phoneNumber: seed.phoneNumber, createdAt: createdAt)
         }
+        serverPeople = seeded
+    }
 
-        let nextPage = endIndex < filteredSeeds.count ? page + 1 : nil
-        let response = ToCallPage(items: people, nextPage: nextPage, lastSyncedAt: lastSyncedAt)
+    private func startStreaming() {
+        streamCancellable = Timer.publish(every: streamInterval, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.generateNextPerson()
+            }
+    }
 
-        return Just(response)
-            .delay(for: .milliseconds(300), scheduler: DispatchQueue.main)
-            .setFailureType(to: Error.self)
-            .eraseToAnyPublisher()
+    private func generateNextPerson() {
+        serverQueue.async { [weak self] in
+            guard let self else { return }
+            let seed = self.seeds[self.seedCursor % self.seeds.count]
+            self.seedCursor += 1
+            let suffix = self.seedCursor / self.seeds.count
+            let name = suffix > 0 ? "\(seed.name) \(suffix + 1)" : seed.name
+            let person = ServerPerson(id: UUID(), name: name, phoneNumber: seed.phoneNumber, createdAt: Date())
+            self.serverPeople.append(person)
+            let mapped = ToCallPerson(
+                id: person.id,
+                name: person.name,
+                phoneNumber: person.phoneNumber,
+                lastSyncedAt: person.createdAt
+            )
+            self.streamSubject.send(mapped)
+        }
     }
 }
