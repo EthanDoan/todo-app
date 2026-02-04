@@ -12,6 +12,7 @@
 
 /* Begin PBXFileReference section */
 		023CFC242F31074900EBDB8B /* todo-app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "todo-app.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		02835EE62F32FDA500556DC4 /* todo-app.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "todo-app.xctestplan"; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B5C /* todo-appTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "todo-appTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -29,6 +30,14 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		023CFC212F31074900EBDB8B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				02AF45C02F32168B000DFAD3 /* SQLite in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C3D4E5F60718293A4B5C6D7E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -38,21 +47,11 @@
 		};
 /* End PBXFrameworksBuildPhase section */
 
-/* Begin PBXFrameworksBuildPhase section */
-		023CFC212F31074900EBDB8B /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				02AF45C02F32168B000DFAD3 /* SQLite in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
-
 /* Begin PBXGroup section */
 		023CFC1B2F31074900EBDB8B = {
 			isa = PBXGroup;
 			children = (
+				02835EE62F32FDA500556DC4 /* todo-app.xctestplan */,
 				023CFC262F31074900EBDB8B /* todo-app */,
 				B2C3D4E5F60718293A4B5C6D /* todo-appTests */,
 				023CFC252F31074900EBDB8B /* Products */,
@@ -71,26 +70,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D4E5F60718293A4B5C6D7E8F /* todo-appTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = E5F60718293A4B5C6D7E8F90 /* Build configuration list for PBXNativeTarget "todo-appTests" */;
-			buildPhases = (
-				F60718293A4B5C6D7E8F90A1 /* Sources */,
-				C3D4E5F60718293A4B5C6D7E /* Frameworks */,
-				0718293A4B5C6D7E8F90A1B2 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				B2C3D4E5F60718293A4B5C6D /* todo-appTests */,
-			);
-			name = "todo-appTests";
-			productName = "todo-appTests";
-			productReference = A1B2C3D4E5F60718293A4B5C /* todo-appTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		023CFC232F31074900EBDB8B /* todo-app */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 023CFC2F2F31074B00EBDB8B /* Build configuration list for PBXNativeTarget "todo-app" */;
@@ -113,6 +92,26 @@
 			productName = "todo-app";
 			productReference = 023CFC242F31074900EBDB8B /* todo-app.app */;
 			productType = "com.apple.product-type.application";
+		};
+		D4E5F60718293A4B5C6D7E8F /* todo-appTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E5F60718293A4B5C6D7E8F90 /* Build configuration list for PBXNativeTarget "todo-appTests" */;
+			buildPhases = (
+				F60718293A4B5C6D7E8F90A1 /* Sources */,
+				C3D4E5F60718293A4B5C6D7E /* Frameworks */,
+				0718293A4B5C6D7E8F90A1B2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B2C3D4E5F60718293A4B5C6D /* todo-appTests */,
+			);
+			name = "todo-appTests";
+			productName = "todo-appTests";
+			productReference = A1B2C3D4E5F60718293A4B5C /* todo-appTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -156,6 +155,13 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		023CFC222F31074900EBDB8B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0718293A4B5C6D7E8F90A1B2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -165,28 +171,15 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXResourcesBuildPhase section */
-		023CFC222F31074900EBDB8B /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
-		F60718293A4B5C6D7E8F90A1 /* Sources */ = {
+		023CFC202F31074900EBDB8B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-/* End PBXSourcesBuildPhase section */
-
-/* Begin PBXSourcesBuildPhase section */
-		023CFC202F31074900EBDB8B /* Sources */ = {
+		F60718293A4B5C6D7E8F90A1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (

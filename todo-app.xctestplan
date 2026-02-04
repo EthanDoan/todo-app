@@ -1,0 +1,30 @@
+{
+  "configurations" : [
+    {
+      "id" : "DDDE8DD7-7BE0-41E8-9997-48033AFE5301",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:todo-app.xcodeproj",
+      "identifier" : "023CFC232F31074900EBDB8B",
+      "name" : "todo-app"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:todo-app.xcodeproj",
+        "identifier" : "D4E5F60718293A4B5C6D7E8F",
+        "name" : "todo-appTests"
+      }
+    }
+  ],
+  "version" : 1
+}
