@@ -27,6 +27,15 @@ The app is organized into `Presentation`, `Domain`, and `Data` layers.
 - Xcode 15 or newer
 - iOS 17+ simulator or device
 
+### Mock API/data setup
+
+The app ships with in-memory mock data sources for **To-Call** and **To-Buy**, so there is no external API to configure.
+
+- **To-Call**: `ToCallAPIClient` seeds an in-memory "server" with a list of people and simulates a streaming feed every 15 seconds. Edit the `seeds` array (names/phone numbers) or adjust the `streamInterval` if you want different mock data or timing. The mock server also supports pagination and search. (`todo-app/Data/Remote/ToCallAPIClient.swift`)
+- **To-Buy**: `ToBuyAPIClient` loads a JSON payload embedded in `mockPayload` and emits new items on a timer. Update the JSON in `mockPayload` to change the catalog, or edit `realtimeItems` to control the live feed. (`todo-app/Data/Remote/ToBuyAPIClient.swift`)
+
+No additional setup is required beyond running the app.
+
 ### Run the app
 
 1. Open `todo-app.xcodeproj` in Xcode.
