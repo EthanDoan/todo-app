@@ -2,12 +2,12 @@ import Combine
 import Foundation
 
 final class RemoteToBuyRepository: ToBuyRepository {
-    private let apiClient: ToBuyAPIClient
-    private let wishlistStore: WishlistStore
+    private let apiClient: ToBuyAPIClientProtocol
+    private let wishlistStore: WishlistStoreProtocol
     private let store: InMemoryToBuyStore
     private var cancellables = Set<AnyCancellable>()
 
-    init(apiClient: ToBuyAPIClient, wishlistStore: WishlistStore, store: InMemoryToBuyStore) {
+    init(apiClient: ToBuyAPIClientProtocol, wishlistStore: WishlistStoreProtocol, store: InMemoryToBuyStore) {
         self.apiClient = apiClient
         self.wishlistStore = wishlistStore
         self.store = store
