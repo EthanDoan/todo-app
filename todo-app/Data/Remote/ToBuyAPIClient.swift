@@ -65,7 +65,7 @@ final class ToBuyAPIClient {
     }
 
     func observeNewItems() -> AnyPublisher<ToBuyItem, Never> {
-        Timer.publish(every: 8, on: .main, in: .common)
+        Timer.publish(every: 12, on: .main, in: .common)
             .autoconnect()
             .scan(0) { index, _ in index + 1 }
             .map { index in
