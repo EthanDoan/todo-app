@@ -20,7 +20,6 @@ final class AppContainer {
         let toCallApiClient = ToCallAPIClient()
         let toCallStore = SQLiteToCallStore()
         self.toCallRepository = RemoteToCallRepository(apiClient: toCallApiClient, store: toCallStore)
-        observeToCallCount()
 
         let toBuyApiClient = ToBuyAPIClient()
         let wishlistStore = WishlistStore()
@@ -40,6 +39,7 @@ final class AppContainer {
 
         self.toSellRepository = LocalToSellRepository()
         self.syncRepository = HybridSyncRepository()
+        observeToCallCount()
     }
 
     func makeHomeViewModel() -> HomeViewModel {

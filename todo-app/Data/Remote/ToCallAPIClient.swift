@@ -15,7 +15,7 @@ final class ToCallAPIClient {
     }
 
     private let pageSize = 10
-    private let streamInterval: TimeInterval = 6
+    private let streamInterval: TimeInterval = 15
     private let serverQueue = DispatchQueue(label: "tocall.server.queue")
     private let streamSubject = PassthroughSubject<ToCallPerson, Never>()
     private var streamCancellable: AnyCancellable?
