@@ -9,8 +9,19 @@ struct ToCallView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("To Call")
-                .font(.largeTitle.bold())
+            HStack {
+                Text("To Call")
+                    .font(.largeTitle.bold())
+                Spacer()
+                Button {
+                    viewModel.loadFirstPage()
+                } label: {
+                    Label("Sync", systemImage: "arrow.clockwise")
+                        .labelStyle(.iconOnly)
+                }
+                .accessibilityLabel("Sync To-Call list")
+            }
+            .padding(.horizontal)
             Text("Last synced: \(viewModel.lastSyncedAt?.description ?? "Never")")
                 .font(.caption)
             HStack {

@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 final class AppContainer {
@@ -9,6 +10,7 @@ final class AppContainer {
     private let toBuyRepository: ToBuyRepository
     private let toSellRepository: ToSellRepository
     private let syncRepository: SyncRepository
+    private var cancellables = Set<AnyCancellable>()
 
     init() {
         let counterRepository = InMemoryHomeCounterRepository()
@@ -16,7 +18,9 @@ final class AppContainer {
         self.observeCountersUseCase = DefaultObserveHomeCountersUseCase(repository: counterRepository)
 
         let toCallApiClient = ToCallAPIClient()
-        self.toCallRepository = RemoteToCallRepository(apiClient: toCallApiClient)
+        let toCallStore = SQLiteToCallStore()
+        self.toCallRepository = RemoteToCallRepository(apiClient: toCallApiClient, store: toCallStore)
+        observeToCallCount()
 
         let toBuyApiClient = ToBuyAPIClient()
         let wishlistStore = WishlistStore()
@@ -48,12 +52,21 @@ final class AppContainer {
     func makeToCallViewModel() -> ToCallViewModel {
         let fetchPageUseCase = DefaultFetchToCallPageUseCase(repository: toCallRepository)
         let retryUseCase = DefaultRetryToCallUseCase(repository: toCallRepository)
-        let updateToCallCountUseCase = DefaultUpdateToCallCountUseCase(repository: counterRepository)
+        let observeUpdatesUseCase = DefaultObserveToCallUpdatesUseCase(repository: toCallRepository)
         return ToCallViewModel(
             fetchPageUseCase: fetchPageUseCase,
             retryUseCase: retryUseCase,
-            updateToCallCountUseCase: updateToCallCountUseCase
+            observeUpdatesUseCase: observeUpdatesUseCase
         )
+    }
+
+    private func observeToCallCount() {
+        let observeCountUseCase = DefaultObserveToCallCountUseCase(repository: toCallRepository)
+        observeCountUseCase.execute()
+            .sink { [weak self] count in
+                self?.counterRepository.updateToCallCount(count)
+            }
+            .store(in: &cancellables)
     }
 
     func makeToBuyViewModel() -> ToBuyViewModel {

@@ -10,7 +10,7 @@ final class ToCallViewModel: ObservableObject {
 
     private let fetchPageUseCase: FetchToCallPageUseCase
     private let retryUseCase: RetryToCallUseCase
-    private let updateToCallCountUseCase: UpdateToCallCountUseCase
+    private let observeUpdatesUseCase: ObserveToCallUpdatesUseCase
     private var cancellables = Set<AnyCancellable>()
     private var pageLoadCancellable: AnyCancellable?
     private var nextPageCancellable: AnyCancellable?
@@ -20,11 +20,11 @@ final class ToCallViewModel: ObservableObject {
     init(
         fetchPageUseCase: FetchToCallPageUseCase,
         retryUseCase: RetryToCallUseCase,
-        updateToCallCountUseCase: UpdateToCallCountUseCase
+        observeUpdatesUseCase: ObserveToCallUpdatesUseCase
     ) {
         self.fetchPageUseCase = fetchPageUseCase
         self.retryUseCase = retryUseCase
-        self.updateToCallCountUseCase = updateToCallCountUseCase
+        self.observeUpdatesUseCase = observeUpdatesUseCase
 
         $searchText
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -33,6 +33,13 @@ final class ToCallViewModel: ObservableObject {
             .dropFirst()
             .sink { [weak self] text in
                 self?.applyFilter(text)
+            }
+            .store(in: &cancellables)
+
+        observeUpdatesUseCase.execute()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] updates in
+                self?.handleIncomingUpdates(updates)
             }
             .store(in: &cancellables)
     }
@@ -49,7 +56,6 @@ final class ToCallViewModel: ObservableObject {
                 self?.lastSyncedAt = page.lastSyncedAt
                 self?.nextPage = page.nextPage
                 self?.hasNextPage = page.nextPage != nil
-                self?.updateToCallCountUseCase.execute(count: page.items.count)
             })
     }
 
@@ -61,7 +67,6 @@ final class ToCallViewModel: ObservableObject {
                 self?.lastSyncedAt = page.lastSyncedAt
                 self?.nextPage = page.nextPage
                 self?.hasNextPage = page.nextPage != nil
-                self?.updateToCallCountUseCase.execute(count: page.items.count)
             })
     }
 
@@ -80,7 +85,6 @@ final class ToCallViewModel: ObservableObject {
                     self.lastSyncedAt = page.lastSyncedAt
                     self.nextPage = page.nextPage
                     self.hasNextPage = page.nextPage != nil
-                    self.updateToCallCountUseCase.execute(count: self.people.count)
                 }
             )
     }
@@ -94,5 +98,26 @@ final class ToCallViewModel: ObservableObject {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         currentFilter = ToCallFilter(searchText: trimmed.isEmpty ? nil : trimmed)
         loadFirstPage()
+    }
+
+    private func handleIncomingUpdates(_ updates: [ToCallPerson]) {
+        let filteredUpdates = updates.filter { matchesFilter($0, filter: currentFilter) }
+        guard !filteredUpdates.isEmpty else { return }
+        let existingIds = Set(people.map(\.id))
+        let newPeople = filteredUpdates.filter { !existingIds.contains($0.id) }
+        guard !newPeople.isEmpty else { return }
+        people.insert(contentsOf: newPeople, at: 0)
+        people.sort { ($0.lastSyncedAt ?? .distantPast) > ($1.lastSyncedAt ?? .distantPast) }
+        lastSyncedAt = Date()
+    }
+
+    private func matchesFilter(_ person: ToCallPerson, filter: ToCallFilter) -> Bool {
+        guard let searchText = filter.searchText?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !searchText.isEmpty else {
+            return true
+        }
+        let lowered = searchText.lowercased()
+        return person.name.lowercased().contains(lowered)
+            || person.phoneNumber.lowercased().contains(lowered)
     }
 }
