@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 final class AppContainer {
@@ -9,6 +10,7 @@ final class AppContainer {
     private let toBuyRepository: ToBuyRepository
     private let toSellRepository: ToSellRepository
     private let syncRepository: SyncRepository
+    private var cancellables = Set<AnyCancellable>()
 
     init() {
         let counterRepository = InMemoryHomeCounterRepository()
@@ -18,6 +20,7 @@ final class AppContainer {
         let toCallApiClient = ToCallAPIClient()
         let toCallStore = SQLiteToCallStore()
         self.toCallRepository = RemoteToCallRepository(apiClient: toCallApiClient, store: toCallStore)
+        observeToCallCount()
 
         let toBuyApiClient = ToBuyAPIClient()
         let wishlistStore = WishlistStore()
@@ -50,13 +53,20 @@ final class AppContainer {
         let fetchPageUseCase = DefaultFetchToCallPageUseCase(repository: toCallRepository)
         let retryUseCase = DefaultRetryToCallUseCase(repository: toCallRepository)
         let observeUpdatesUseCase = DefaultObserveToCallUpdatesUseCase(repository: toCallRepository)
-        let updateToCallCountUseCase = DefaultUpdateToCallCountUseCase(repository: counterRepository)
         return ToCallViewModel(
             fetchPageUseCase: fetchPageUseCase,
             retryUseCase: retryUseCase,
-            observeUpdatesUseCase: observeUpdatesUseCase,
-            updateToCallCountUseCase: updateToCallCountUseCase
+            observeUpdatesUseCase: observeUpdatesUseCase
         )
+    }
+
+    private func observeToCallCount() {
+        let observeCountUseCase = DefaultObserveToCallCountUseCase(repository: toCallRepository)
+        observeCountUseCase.execute()
+            .sink { [weak self] count in
+                self?.counterRepository.updateToCallCount(count)
+            }
+            .store(in: &cancellables)
     }
 
     func makeToBuyViewModel() -> ToBuyViewModel {

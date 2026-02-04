@@ -7,11 +7,14 @@ final class RemoteToCallRepository: ToCallRepository {
     private let pageSize = 10
     private var lastRequest: (page: Int, filter: ToCallFilter)?
     private let updatesSubject = PassthroughSubject<[ToCallPerson], Never>()
+    private let countSubject: CurrentValueSubject<Int, Never>
     private var cancellables = Set<AnyCancellable>()
 
     init(apiClient: ToCallAPIClient, store: SQLiteToCallStore) {
         self.apiClient = apiClient
         self.store = store
+        let initialCount = (try? store.totalCount()) ?? 0
+        self.countSubject = CurrentValueSubject(initialCount)
         observeServerUpdates()
     }
 
@@ -31,12 +34,19 @@ final class RemoteToCallRepository: ToCallRepository {
         updatesSubject.eraseToAnyPublisher()
     }
 
+    func observeCount() -> AnyPublisher<Int, Never> {
+        countSubject.eraseToAnyPublisher()
+    }
+
     private func syncAndLoad(page: Int, filter: ToCallFilter) -> AnyPublisher<ToCallPage, Error> {
         let lastSyncedAt = (try? store.latestSyncedAt()) ?? nil
         return apiClient.fetchPeople(page: page, filter: filter, lastSyncedAt: lastSyncedAt)
             .tryMap { [weak self] response in
                 guard let self else { return response }
                 try self.store.upsert(people: response.items)
+                if let count = try? self.store.totalCount() {
+                    self.countSubject.send(count)
+                }
                 let cachedPage = try self.store.fetchPage(page: page, pageSize: self.pageSize, filter: filter)
                 return ToCallPage(
                     items: cachedPage.items,
@@ -53,6 +63,9 @@ final class RemoteToCallRepository: ToCallRepository {
                 guard let self else { return }
                 do {
                     try self.store.upsert(people: [person])
+                    if let count = try? self.store.totalCount() {
+                        self.countSubject.send(count)
+                    }
                     self.updatesSubject.send([person])
                 } catch {
                     assertionFailure("Failed to persist streamed To-Call person: \(error)")

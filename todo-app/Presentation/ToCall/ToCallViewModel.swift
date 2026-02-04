@@ -11,7 +11,6 @@ final class ToCallViewModel: ObservableObject {
     private let fetchPageUseCase: FetchToCallPageUseCase
     private let retryUseCase: RetryToCallUseCase
     private let observeUpdatesUseCase: ObserveToCallUpdatesUseCase
-    private let updateToCallCountUseCase: UpdateToCallCountUseCase
     private var cancellables = Set<AnyCancellable>()
     private var pageLoadCancellable: AnyCancellable?
     private var nextPageCancellable: AnyCancellable?
@@ -21,13 +20,11 @@ final class ToCallViewModel: ObservableObject {
     init(
         fetchPageUseCase: FetchToCallPageUseCase,
         retryUseCase: RetryToCallUseCase,
-        observeUpdatesUseCase: ObserveToCallUpdatesUseCase,
-        updateToCallCountUseCase: UpdateToCallCountUseCase
+        observeUpdatesUseCase: ObserveToCallUpdatesUseCase
     ) {
         self.fetchPageUseCase = fetchPageUseCase
         self.retryUseCase = retryUseCase
         self.observeUpdatesUseCase = observeUpdatesUseCase
-        self.updateToCallCountUseCase = updateToCallCountUseCase
 
         $searchText
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -59,7 +56,6 @@ final class ToCallViewModel: ObservableObject {
                 self?.lastSyncedAt = page.lastSyncedAt
                 self?.nextPage = page.nextPage
                 self?.hasNextPage = page.nextPage != nil
-                self?.updateToCallCountUseCase.execute(count: page.items.count)
             })
     }
 
@@ -71,7 +67,6 @@ final class ToCallViewModel: ObservableObject {
                 self?.lastSyncedAt = page.lastSyncedAt
                 self?.nextPage = page.nextPage
                 self?.hasNextPage = page.nextPage != nil
-                self?.updateToCallCountUseCase.execute(count: page.items.count)
             })
     }
 
@@ -90,7 +85,6 @@ final class ToCallViewModel: ObservableObject {
                     self.lastSyncedAt = page.lastSyncedAt
                     self.nextPage = page.nextPage
                     self.hasNextPage = page.nextPage != nil
-                    self.updateToCallCountUseCase.execute(count: self.people.count)
                 }
             )
     }
@@ -115,7 +109,6 @@ final class ToCallViewModel: ObservableObject {
         people.insert(contentsOf: newPeople, at: 0)
         people.sort { ($0.lastSyncedAt ?? .distantPast) > ($1.lastSyncedAt ?? .distantPast) }
         lastSyncedAt = Date()
-        updateToCallCountUseCase.execute(count: people.count)
     }
 
     private func matchesFilter(_ person: ToCallPerson, filter: ToCallFilter) -> Bool {

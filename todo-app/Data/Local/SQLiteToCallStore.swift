@@ -70,6 +70,10 @@ final class SQLiteToCallStore {
         return Date(timeIntervalSince1970: row[lastSyncedAt])
     }
 
+    func totalCount() throws -> Int {
+        try db.scalar(table.count)
+    }
+
     private func configure() throws {
         try db.run(table.create(ifNotExists: true) { builder in
             builder.column(id, primaryKey: true)
