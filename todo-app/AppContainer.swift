@@ -39,6 +39,7 @@ final class AppContainer {
 
         self.toSellRepository = LocalToSellRepository()
         self.syncRepository = HybridSyncRepository()
+        self.syncRepository.scheduleBackgroundSync()
         observeToCallCount()
     }
 
@@ -94,10 +95,12 @@ final class AppContainer {
         let observeItemsUseCase = DefaultObserveToSellItemsUseCase(repository: toSellRepository)
         let mutateUseCase = DefaultMutateToSellItemUseCase(repository: toSellRepository)
         let updateToSellCountUseCase = DefaultUpdateToSellCountUseCase(repository: counterRepository)
+        let enqueueSyncUseCase = DefaultEnqueueSellSyncUseCase(repository: syncRepository)
         return ToSellViewModel(
             observeItemsUseCase: observeItemsUseCase,
             mutateUseCase: mutateUseCase,
-            updateToSellCountUseCase: updateToSellCountUseCase
+            updateToSellCountUseCase: updateToSellCountUseCase,
+            enqueueSyncUseCase: enqueueSyncUseCase
         )
     }
 
